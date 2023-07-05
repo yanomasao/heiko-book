@@ -1,13 +1,15 @@
+use rand::Rng;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
-use rand::Rng;
 
 fn some_func(lock: Arc<Mutex<u64>>, name: &str) {
     loop {
         let mut val = lock.lock().unwrap();
-        if 1000 <= *val { return; }
+        if 1000 <= *val {
+            return;
+        }
         *val += 1;
         let mut rng = rand::thread_rng(); // デフォルトの乱数生成器を初期化します
         let sec = rng.gen_range(0..100);
