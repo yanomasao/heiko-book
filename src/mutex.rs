@@ -1,31 +1,34 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
+use std::thread::sleep;
+use std::time::Duration;
+use rand::Rng;
 
-fn some_func(lock: Arc<Mutex<u64>>) {
+fn some_func(lock: Arc<Mutex<u64>>, name: &str) {
     loop {
         let mut val = lock.lock().unwrap();
+        if 1000 <= *val { return; }
         *val += 1;
-        println!("{}", *val);
+        let mut rng = rand::thread_rng(); // デフォルトの乱数生成器を初期化します
+        let sec = rng.gen_range(0..100);
+        sleep(Duration::from_millis(sec));
+        println!("{} {} {}", name, *val, sec);
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-    #[test]
-    fn main_test() {
-        let lock0 = Arc::new(Mutex::new(0));
-        let lock1 = lock0.clone();
+#[test]
+fn main_test() {
+    let lock0 = Arc::new(Mutex::new(0));
+    let lock1 = lock0.clone();
 
-        let th0 = thread::spawn(move || {
-            some_func(lock0);
-        });
+    let th0 = thread::spawn(move || {
+        some_func(lock0, "th0    ");
+    });
 
-        let th1 = thread::spawn(move || {
-            some_func(lock1);
-        });
+    let th1 = thread::spawn(move || {
+        some_func(lock1, "    th1");
+    });
 
-        th0.join().unwrap();
-        th1.join().unwrap();
-    }
-
-// }
+    th0.join().unwrap();
+    th1.join().unwrap();
+}
